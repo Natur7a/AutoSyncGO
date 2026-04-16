@@ -1,11 +1,12 @@
 package sync
 
 import (
+	"AutoSyncGO/code/models"
 	"database/sql"
 	"time"
 )
 
-func Detector(db *sql.DB, lastSync time.Time) ([]Change, error) {
+func Detector(db *sql.DB, lastSync time.Time) ([]models.Change, error) {
 	query := `
 		SELECT id, file_path, change_type, changed_at
 		FROM sync_changes
