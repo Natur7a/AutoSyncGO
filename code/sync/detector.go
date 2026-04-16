@@ -20,9 +20,9 @@ func Detector(db *sql.DB, lastSync time.Time) ([]models.Change, error) {
 	}
 	defer rows.Close()
 
-	var changes []Change
+	var changes []models.Change
 	for rows.Next() {
-		var c Change
+		var c models.Change
 		if err := rows.Scan(&c.ID, &c.FilePath, &c.ChangeType, &c.ChangedAt); err != nil {
 			return nil, err
 		}
