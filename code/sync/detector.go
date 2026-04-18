@@ -32,8 +32,8 @@ func Detector(db *sql.DB, lastVersion []byte, tableName string) ([]map[string]in
 			valuePtrs[i] = &values[i]
 		}
 
-		if scanner := rows.Scan(valuePtrs...); scanner != nil {
-			return nil, scanner
+		if errors := rows.Scan(valuePtrs...); errors != nil {
+			return nil, errors
 		}
 
 		rowMap := make(map[string]interface{}, len(cols))
