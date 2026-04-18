@@ -1,9 +1,8 @@
 package main
 
 import (
-	"fmt"
-
 	"AutoSyncGO/code/db"
+	"fmt"
 )
 
 func main() {

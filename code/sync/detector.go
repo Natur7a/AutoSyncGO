@@ -1,33 +1,51 @@
 package sync
 
 import (
-	"AutoSyncGO/code/models"
 	"database/sql"
-	"time"
+	"fmt"
 )
 
-func Detector(db *sql.DB, lastSync time.Time) ([]models.Change, error) {
-	query := `
-		SELECT id, file_path, change_type, changed_at
-		FROM sync_changes
-		WHERE changed_at > ?
-		ORDER BY changed_at ASC
-	`
+func Detector(db *sql.DB, lastVersion []byte, tableName string) ([]map[string]interface{}, error) {
+	query := fmt.Sprintf(`
+		SELECT *
+		FROM %s
+		WHERE rowversion > ?
+		ORDER BY rowversion ASC
+	`, tableName)
 
-	rows, err := db.Query(query, lastSync)
+	rows, err := db.Query(query, lastVersion)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var changes []models.Change
-	for rows.Next() {
-		var c models.Change
-		if err := rows.Scan(&c.ID, &c.FilePath, &c.ChangeType, &c.ChangedAt); err != nil {
-			return nil, err
-		}
-		changes = append(changes, c)
+	cols, err := rows.Columns()
+	if err != nil {
+		return nil, err
 	}
 
-	return changes, nil
+	var result []map[string]interface{}
+	for rows.Next() {
+		values := make([]interface{}, len(cols))
+		valuePtrs := make([]interface{}, len(cols))
+		for i := range values {
+			valuePtrs[i] = &values[i]
+		}
+
+		if scanner := rows.Scan(valuePtrs...); scanner != nil {
+			return nil, scanner
+		}
+
+		rowMap := make(map[string]interface{}, len(cols))
+		for i, c := range cols {
+			rowMap[c] = values[i]
+		}
+		result = append(result, rowMap)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
